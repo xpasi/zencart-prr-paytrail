@@ -1,0 +1,8 @@
+<div id="prr_paytrail_container"><div id="prr_paytrail_integration_container"></div></div><br class="clearBoth" />
+<script type="text/javascript" src="//payment.paytrail.com/js/payment-widget-v1.0.min.js"></script>
+<script type="text/javascript">
+$(function() {
+	SV.widget.initWithToken('prr_paytrail_integration_container', '[:PRR_PAYTRAIL_TOKEN:]', {charset: '<?php echo CHARSET; ?>', width: $('#prr_paytrail_integration_container').width()});
+	$('#btn_submit').hide();
+});
+</script>
