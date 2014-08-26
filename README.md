@@ -1,18 +1,17 @@
 prr_paytrail - Paytrail moduli
 ===============
 
-**(ent. Suomen verkkomaksut)**
-
 ## prr_paytrail v2
 
 Paytrail maksumoduli ZenCart verkkokauppaan. Käyttää REST API:a.
-Sisälää option integroida maksutavan valinnan suoraan zencartin kassaan (viimeinen vaihe).
+Sisältää option integroida maksutavan valinnan suoraan zencartin kassaan (viimeinen vaihe).
 Sisältää myös sivulaatikon, joka generoi kauppiastunnisteen perusteella käytössä olevat maksutapa ikonit näkyville (virallinen Paytrail "banneri").
+
 
 ## Yhteensopivuus
 
 Tämä moduli on testattu toimvaksi ZenCart 1.5.0 ja 1.5.1 versioissa.
-Toimii myös 1.3.X versioissa, mutta vaatii että kauppa on UTF-8 merkistökoodattu tai että moduliin lisätään *utf8_encode()* funktio muuntamaan lähetetty data UTF-8 muotoon.
+Toimii myös 1.3.X versioissa, mutta vaatii että kauppa on UTF-8 merkistökoodattu tai että moduliin lisätään *utf8_encode()* funktio muuntamaan lähetetty data UTF-8 muotoon tai mahdollisesti kertomalla REST Apille että lähetetty data on ISO-8859-1 muodossa (ei testattu).
 
 
 ## Asennus
@@ -33,6 +32,11 @@ Toimii myös 1.3.X versioissa, mutta vaatii että kauppa on UTF-8 merkistökooda
 ## Loki
 
 Moduli tallentaa logs/ (tai cache/ jos logs hakemistoa ei ole) kaikki virheelliset maksuvahvistus yritykset. Tulivat ne sitten Paytraililtä tai joltain muulta taholta (mahdollinen huijausyritys).
+
+
+## Bugit
+
+**26.08.2014** - On havaittu että joskus, kun tilauksessa on paljon tuotteita ja/tai runsaasti attribuutteja tuotteella, ZenCartin checkout_process sivulta saattaa mennä pitkä aika tilauksen tallentamiseksi tietokantaan. Joskus tämä voi aiheuttaa race conditionin Paytrailin vahvistuksen kanssa, jolloin Paytrail vahvistaa tilauksen ennen kuin tilaus on keretty kirjoittaa tietokantaan. Seurauksena tilaus ei siirry "vahvistettu" tilaan vaan maksu on varmistettava kauppiassivujen kautta erikseen.
 
 
 ## Tuki

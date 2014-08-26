@@ -2,9 +2,9 @@
 
 include('includes/application_top.php');
 
-require_once((IS_ADMIN_FLAG === true ? DIR_FS_CATALOG_MODULES : DIR_WS_MODULES) . '/payment/prr_paytrail/Verkkomaksut_Module_Rest.php');
+require_once((IS_ADMIN_FLAG === true ? DIR_FS_CATALOG_MODULES : DIR_WS_MODULES) . '/payment/prr_paytrail/Paytrail_Module_Rest.php');
 
-$module = new Verkkomaksut_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
+$module = new Paytrail_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
 if ($module->confirmPayment($_GET["ORDER_NUMBER"], $_GET["TIMESTAMP"], $_GET["PAID"], $_GET["METHOD"], $_GET["RETURN_AUTHCODE"])) {
 	// Maksukuittaus on validi
 	// Maksussa käytetty maksutapa löytyy tarvittaessa muuttujasta $_GET["METHOD"]

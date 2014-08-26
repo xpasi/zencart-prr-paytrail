@@ -22,27 +22,31 @@ class prr_paytrail {
 		if (is_object($order)) $this->update_status();
 		$this->form_action_url = $_SESSION['prr']['paytrail']['url'];
 
-		$this->methods[1] = 'Nordea';
-		$this->methods[2] = 'Osuuspankki';
-		$this->methods[3] = 'Sampo Pankki';
-		$this->methods[4] = 'Tapiola';
-		$this->methods[5] = 'Ålandsbanken';
-		$this->methods[6] = 'Handelsbanken';
-		$this->methods[7] = 'Säästöpankit, paikallisosuuspankit, Aktia, Nooa';
-		$this->methods[8] = 'Luottokunta';
-		$this->methods[9] = 'Paypal';
-		$this->methods[10] = 'S-Pankki';
-		$this->methods[11] = 'Klarna, Laskulla';
-		$this->methods[12] = 'Klarna, Osamaksulla';
-		$this->methods[13] = 'DEPRECATED: Collector';
-		$this->methods[18] = 'Joustoraha';
-		$this->methods[19] = 'Collector';
-		$this->methods[30] = 'Visa';
-		$this->methods[31] = 'MasterCard';
-		$this->methods[32] = 'Maestro';
-		$this->methods[33] = 'American Express';
-		$this->methods[34] = 'Diners Club';
-		$this->methods[35] = 'JCB';
+		$this->methods = array(
+			1 => 'Nordea',
+			2 => 'OP-Pohjola (Osuuspankki)',
+			3 => 'Danske bank',
+			4 => 'Tapiola',
+			5 => 'Ålandsbanken',
+			6 => 'Handelsbanken',
+			8 => 'Luottokunta',
+			9 => 'Paypal',
+			10 => 'S-Pankki',
+			11 => 'Klarna, Laskulla',
+			12 => 'Klarna, Osamaksulla',
+			18 => 'Jousto',
+			19 => 'Collector',
+			30 => 'Visa',
+			31 => 'MasterCard',
+			32 => 'Maestro',
+			33 => 'American Express',
+			34 => 'Diners Club',
+			35 => 'JCB',
+			50 => 'Aktia',
+			51 => 'POP Pankki',
+			52 => 'Säästöpankki',
+		);
+
 
 	}
 
@@ -92,15 +96,21 @@ class prr_paytrail {
 
 		$Lang = CFG_PRR_PAYTRAIL_DEFAULT_LANGUAGE;
 		$zl = strtoupper($_SESSION['languages_code']);
-		if ($zl == 'FIN' || $zl == 'FI') $Lang = "fi_FI";
-		if ($zl == 'SWE' || $zl == 'SW' || $zl == 'SE'  || $zl == 'SV') $Lang = "sv_SE";
-		if ($zl == 'ENG' || $zl == 'EN') $Lang = "en_US";
+		if ($zl == 'FIN' || $zl == 'FI') $Lang = 'fi_FI';
+		if ($zl == 'SWE' || $zl == 'SW' || $zl == 'SE'  || $zl == 'SV') $Lang = 'sv_SE';
+		if ($zl == 'ENG' || $zl == 'EN') $Lang = 'en_US';
+		if ($zl == 'DNK' || $zl == 'DK') $Lang = 'da_DK';
+		if ($zl == 'EST' || $zl == 'EE') $Lang = 'et_EE';
+		if ($zl == 'FRA' || $zl == 'FR') $Lang = 'fr_FR';
+		if ($zl == 'NOR' || $zl == 'NO') $Lang = 'no_NO';
+		if ($zl == 'RUS' || $zl == 'RU') $Lang = 'ru_RU';
+		if ($zl == 'DEU' || $zl == 'DE') $Lang = 'de_DE';
 
 		// Lähetä maksu
 		$link = (ENABLE_SSL == 'false') ? HTTP_SERVER . '/' . DIR_WS_CATALOG : HTTPS_SERVER . '/' . DIR_WS_HTTPS_CATALOG;
 
 		// Luodaan olio mallintamaan kaikkia maksun paluuosoitteita
-		$urlset = new Verkkomaksut_Module_Rest_Urlset(
+		$urlset = new Paytrail_Module_Rest_Urlset(
 			zen_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL'),	// onnistuneen maksun paluuosoite
 			zen_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL'),	// epäonnistuneet maksun paluuosoite
 			$link . "/prr_paytrail_handler.php",									// osoite, johon lähetetään maksuvarmistus SV:n palvelimelta
@@ -108,7 +118,7 @@ class prr_paytrail {
 		);
 
 		// Luodaan olio mallintamaan maksun suorittavan kuluttajan tietoja
-		$contact = new Verkkomaksut_Module_Rest_Contact(
+		$contact = new Paytrail_Module_Rest_Contact(
 			$order->billing['firstname'],             // etunimi
 			$order->billing['lastname'],              // sukunimi
 			$order->customer['email_address'],        // sähköpostiosoite
@@ -123,7 +133,7 @@ class prr_paytrail {
 
 		// Luodaan maksu
 		$orderNumber = $this->order_id();                     // Käytä yksikäsitteistä tilausnumeroa
-		$payment = new Verkkomaksut_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
+		$payment = new Paytrail_Module_Rest_Payment_E1($orderNumber, $urlset, $contact);
 
 		// Lisätään maksulle yksi tai useampia tuoterivejä
 		foreach ($order->products as $p) {
@@ -141,7 +151,7 @@ class prr_paytrail {
 				$this->p($price),    // tuotteen hinta (/kappale)
 				$p['tax'],      // Veroprosentti
 				"0.00",         // Alennusprosentti
-				Verkkomaksut_Module_Rest_Product::TYPE_NORMAL	// Tuotetyyppi			
+				Paytrail_Module_Rest_Product::TYPE_NORMAL	// Tuotetyyppi			
 			);
 			// Pidä kirjaa tilauksen arvosta
 			$total += ($p['qty'] * $this->p($price));
@@ -156,7 +166,7 @@ class prr_paytrail {
 				$this->p($order->info['shipping_cost']),       // tuotteen hinta (/kappale)
 				round($shipping_tax_class,2),    // Veroprosentti
 				"0.00",         // Alennusprosentti
-				Verkkomaksut_Module_Rest_Product::TYPE_POSTAL	// Tuotetyyppi			
+				Paytrail_Module_Rest_Product::TYPE_POSTAL	// Tuotetyyppi			
 			);
 			// Pidä kirjaa tilauksen arvosta
 			$total += $this->p($order->info['shipping_cost']);
@@ -178,7 +188,7 @@ class prr_paytrail {
 				$total,																					// tuotteen hinta (/kappale)
 				$extra_tax,																		// Veroprosentti
 				"0.00",																					// Alennusprosentti
-				Verkkomaksut_Module_Rest_Product::TYPE_HANDLING	// Tuotetyyppi			
+				Paytrail_Module_Rest_Product::TYPE_HANDLING	// Tuotetyyppi			
 			);
 		}	
 
@@ -189,14 +199,14 @@ class prr_paytrail {
 		$payment->setVatMode(1);
 
 		// Lähetetään maksu Paytrail palveluun ja käsitellään mahdolliset virheet
-		$module = new Verkkomaksut_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
+		$module = new Paytrail_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
 
 		try {
 			$result = $module->processPayment($payment);
 			$_SESSION['prr']['paytrail']['payment_sent'] = true;
 			$_SESSION['prr']['paytrail']['url'] = $result->getUrl();
 			$_SESSION['prr']['paytrail']['token'] = $result->getToken();
-		} catch (Verkkomaksut_Exception $e) {
+		} catch (Paytrail_Exception $e) {
 			// Jos virhe, mene maksutapa sivulle
 			$_SESSION['prr']['paytrail']['payment_sent'] = false;
 			unset($_SESSION['prr']['paytrail']['url']);
@@ -234,7 +244,7 @@ class prr_paytrail {
 	function before_process() {
 		global $messageStack;
 		// Tarkastetaan onko maksu oikeasti mennyt läpi
-		$module = new Verkkomaksut_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
+		$module = new Paytrail_Module_Rest(CFG_PRR_PAYTRAIL_SELLER_ID, CFG_PRR_PAYTRAIL_PASSWORD);
 		if ($module->confirmPayment($_GET["ORDER_NUMBER"], $_GET["TIMESTAMP"], $_GET["PAID"], $_GET["METHOD"], $_GET["RETURN_AUTHCODE"])) {
 			// On mennyt läpi!
 			$_SESSION['prr']['paytrail']['payment_recieved'] = true;
@@ -255,7 +265,11 @@ class prr_paytrail {
 			// Maksukuittaus on validi
 			// Yhdistä väliaikainen tilaus no. varsinaiseen tilausnumeroon
 			$order_id = zen_db_input($_GET["ORDER_NUMBER"]);
-			$method = zen_db_input($this->methods[(int) $_GET["METHOD"]]);
+			if (isset($this->methods[(int) $_GET["METHOD"]])) {
+				$method = zen_db_input($this->methods[(int) $_GET["METHOD"]]);
+			} else {
+				$method = '(Undefined)';
+			}
 			$db->Execute('UPDATE ' . TABLE_SUOMENPANKIT . ' SET `orders_id`="' . $insert_id . '", `referid`="' . $order_id . '", `method`="' . $method . '", `session_id`="" WHERE `session_id`="' . session_id() . '"');
 			// Resetoi käsittelyn jälkeen tieto maksun lähetyksestä
 			$_SESSION['prr']['paytrail']['payment_sent'] = false;
@@ -269,10 +283,10 @@ class prr_paytrail {
 
 	function check() {
 		global $db;
-			if (!isset($this->_check)) {
-				$check_query = $db->Execute("SELECT `configuration_value` FROM `" . TABLE_CONFIGURATION . "` WHERE `configuration_key` = 'CFG_PRR_PAYTRAIL_STATUS'");
-				$this->_check = $check_query->RecordCount();
-			}
+		if (!isset($this->_check)) {
+			$check_query = $db->Execute("SELECT `configuration_value` FROM `" . TABLE_CONFIGURATION . "` WHERE `configuration_key` = 'CFG_PRR_PAYTRAIL_STATUS'");
+			$this->_check = $check_query->RecordCount();
+		}
 		return $this->_check;
 	}
 
